@@ -1,0 +1,31 @@
+name: Build SFX bundle
+
+on: [push, pull_request]
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: CPP/7zip/Bundles/SFXSetup/SFXSetup.sln
+
+  # Configuration type to build.
+  # Note: `ReleaseD` builds 7zSD.sfx (which links to MSVCRT.dll, as opposed to 7zS.sfx, which does not)
+  BUILD_CONFIGURATION: ReleaseD
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.1.3
+
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Upload SFX bundle
+      uses: actions/upload-artifact@v3
+      with:
+        name: sfx-bundle
+        path: CPP/7zip/Bundles/SFXSetup/${{env.BUILD_CONFIGURATION}}/7zSD.sfx
